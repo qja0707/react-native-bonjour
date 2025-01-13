@@ -3,6 +3,10 @@ import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
   multiply(a: number, b: number): number;
+
+  serviceDiscovery(): void;
+
+  serviceRegistrar(): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Bonjour');

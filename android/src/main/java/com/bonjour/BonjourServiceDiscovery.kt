@@ -1,0 +1,65 @@
+package com.bonjour
+
+import android.content.Context
+import android.net.nsd.NsdManager
+import android.net.nsd.NsdServiceInfo
+import android.util.Log
+
+class BonjourServiceDiscovery(private val context: Context) {
+
+  private val nsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
+  private var discoveryListener: NsdManager.DiscoveryListener? = null
+
+  fun startServiceDiscovery(serviceType: String = "_http._tcp.") {
+    discoveryListener = object : NsdManager.DiscoveryListener {
+
+      override fun onStartDiscoveryFailed(serviceType: String?, errorCode: Int) {
+        Log.e("Bonjour", "Discovery failed to start: Error code: $errorCode")
+      }
+
+      override fun onStopDiscoveryFailed(serviceType: String?, errorCode: Int) {
+        Log.e("Bonjour", "Discovery failed to stop: Error code: $errorCode")
+      }
+
+      override fun onDiscoveryStarted(serviceType: String?) {
+        Log.i("Bonjour", "Service discovery started for type: $serviceType")
+      }
+
+      override fun onDiscoveryStopped(serviceType: String?) {
+        Log.i("Bonjour", "Service discovery stopped for type: $serviceType")
+      }
+
+      override fun onServiceFound(serviceInfo: NsdServiceInfo?) {
+        Log.i("Bonjour", "Service found: ${serviceInfo?.serviceName}, ${serviceInfo?.serviceType}")
+        resolveService(serviceInfo)
+      }
+
+      override fun onServiceLost(serviceInfo: NsdServiceInfo?) {
+        Log.w("Bonjour", "Service lost: ${serviceInfo?.serviceName}")
+      }
+    }
+
+    nsdManager.discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, discoveryListener!!)
+  }
+
+  fun stopServiceDiscovery() {
+    discoveryListener?.let {
+      nsdManager.stopServiceDiscovery(it)
+    }
+  }
+
+  private fun resolveService(serviceInfo: NsdServiceInfo?) {
+    serviceInfo?.let {
+      nsdManager.resolveService(it, object : NsdManager.ResolveListener {
+        override fun onResolveFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) {
+          Log.e("Bonjour", "Failed to resolve service: $errorCode")
+        }
+
+        override fun onServiceResolved(resolvedServiceInfo: NsdServiceInfo?) {
+          Log.i("Bonjour", "Service resolved: ${resolvedServiceInfo?.serviceName}, " +
+            "Host: ${resolvedServiceInfo?.host}, Port: ${resolvedServiceInfo?.port}")
+        }
+      })
+    }
+  }
+}
