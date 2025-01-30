@@ -31,3 +31,15 @@ MIT
 ---
 
 Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+
+
+# info.plist
+
+```
+  <key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp.</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Need local network access to find other devices</string>
+```
