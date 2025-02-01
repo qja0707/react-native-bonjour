@@ -19,7 +19,12 @@ import Foundation
   
   @objc func startServiceDiscovery(serviceType: String, domain: String = "local.") {
     print("Starting Bonjour service discovery for \(serviceType) in domain \(domain)")
-    serviceBrowser.searchForServices(ofType: serviceType, inDomain: domain)
+    
+    DispatchQueue.global(qos: .background).async {
+      self.serviceBrowser.searchForServices(ofType: serviceType, inDomain: domain)
+      RunLoop.current.run()
+    }
+    
   }
   
   @objc func stopServiceDiscovery() {
@@ -51,7 +56,7 @@ import Foundation
     print("Service found: \(service.name)")
     services.append(service)
     service.delegate = self
-    service.resolve(withTimeout: 5.0)
+    //    service.resolve(withTimeout: 5.0)
   }
   
   func netServiceBrowser(_ browser: NetServiceBrowser, didFindDomain domainString: String, moreComing: Bool) {
