@@ -15,6 +15,8 @@ import Foundation
   }()
   private var services: [NetService] = []
   
+  private var netService: NetService?
+  
   @objc func startServiceDiscovery(serviceType: String, domain: String = "local.") {
     print("Starting Bonjour service discovery for \(serviceType) in domain \(domain)")
     serviceBrowser.searchForServices(ofType: serviceType, inDomain: domain)
@@ -23,6 +25,24 @@ import Foundation
   @objc func stopServiceDiscovery() {
     print("Stopping Bonjour service discovery")
     serviceBrowser.stop()
+  }
+  
+  @objc func registerService() {
+    let serviceType = "_http._tcp." // 서비스 타입 (예: "_http._tcp." 등)
+    let serviceName = "MySwiftService" // 서비스 이름
+    let port: Int32 = 8080 // 사용할 포트 번호
+    
+    // NetService 인스턴스 생성 및 등록
+    netService = NetService(domain: "local.", type: serviceType, name: serviceName, port: port)
+    netService?.delegate = self
+    netService?.publish()
+    
+    print("서비스 등록됨: \(serviceName) (\(serviceType)) on port \(port)")
+  }
+  
+  @objc func unregisterService() {
+    netService?.stop()
+    print("서비스가 중지되었습니다.")
   }
   
   // MARK: - NetServiceBrowserDelegate
@@ -65,6 +85,14 @@ import Foundation
   
   func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String: NSNumber]) {
     print("Failed to search for services: \(errorDict)")
+  }
+  
+  func netServiceDidPublish(_ sender: NetService) {
+    print("서비스가 성공적으로 등록되었습니다: \(sender.name)")
+  }
+  
+  func netService(_ sender: NetService, didNotPublish errorDict: [String : NSNumber]) {
+    print("서비스 등록 실패: \(errorDict)")
   }
   
   deinit {

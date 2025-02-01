@@ -3,12 +3,14 @@ package com.bonjour
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
+import android.os.Build
 import android.util.Log
 
 class BonjourServiceDiscovery(private val context: Context) {
 
   private val nsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
   private var discoveryListener: NsdManager.DiscoveryListener? = null
+  private var serviceInfoCallback: NsdManager.ServiceInfoCallback? = null
 
   fun startServiceDiscovery(serviceType: String = "_http._tcp.") {
     discoveryListener = object : NsdManager.DiscoveryListener {
@@ -30,7 +32,7 @@ class BonjourServiceDiscovery(private val context: Context) {
       }
 
       override fun onServiceFound(serviceInfo: NsdServiceInfo?) {
-        Log.i("Bonjour", "Service found: ${serviceInfo?.serviceName}, ${serviceInfo?.serviceType}")
+        Log.i("Bonjour", "Service found: ${serviceInfo}")
         resolveService(serviceInfo)
       }
 
@@ -50,6 +52,31 @@ class BonjourServiceDiscovery(private val context: Context) {
 
   private fun resolveService(serviceInfo: NsdServiceInfo?) {
     serviceInfo?.let {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        serviceInfoCallback = object : NsdManager.ServiceInfoCallback {
+          override fun onServiceInfoCallbackRegistrationFailed(p0: Int) {
+            TODO("Not yet implemented")
+          }
+
+          override fun onServiceUpdated(updatedServiceInfo: NsdServiceInfo) {
+            Log.i("Bonjour", "Service updated: ${updatedServiceInfo.serviceName}, " +
+              "Host: ${updatedServiceInfo.host}, Port: ${updatedServiceInfo.port}")
+          }
+
+          override fun onServiceLost() {
+            Log.w("Bonjour", "Service lost")
+          }
+
+          override fun onServiceInfoCallbackUnregistered() {
+            TODO("Not yet implemented")
+          }
+        }
+
+        nsdManager.registerServiceInfoCallback(it, Runnable::run, serviceInfoCallback!!)
+
+        return;
+      }
+
       nsdManager.resolveService(it, object : NsdManager.ResolveListener {
         override fun onResolveFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) {
           Log.e("Bonjour", "Failed to resolve service: $errorCode")

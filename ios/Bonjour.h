@@ -8,6 +8,6 @@
 @interface Bonjour : NSObject <NativeBonjourSpec>
 
 // 여기서 'strong' 프로퍼티로 BonjourServiceDiscovery를 선언
-@property (nonatomic, strong) BonjourServiceDiscovery *discovery;
+@property (nonatomic, strong) BonjourServiceDiscovery *netServiceObj;
 
 @end
