@@ -40,17 +40,16 @@ RCT_EXPORT_METHOD(stopBonjourDiscovery) {
 }
 
 // 서비스 등록 메서드
-RCT_EXPORT_METHOD(serviceRegistrar) {
-  NSLog(@"[Bonjour] serviceRegistrar called");
+RCT_EXPORT_METHOD(serviceRegistrar:(NSString *)serviceName) {
+  NSLog(@"[Bonjour] serviceRegistrar called with name: %@", serviceName);
   
   NSString *serviceType = @"_http._tcp."; // 서비스 타입
-  NSString *serviceName = @"MyService"; // 서비스 이름
   int port = 8080; // 사용할 포트 번호
   
   // NetService 인스턴스 생성 및 등록
-  self.netService = [[NSNetService alloc] initWithDomain:@"local." 
-                                                    type:serviceType 
-                                                    name:serviceName 
+  self.netService = [[NSNetService alloc] initWithDomain:@"local."
+                                                    type:serviceType
+                                                    name:serviceName
                                                     port:port];
   self.netService.delegate = self;
   [self.netService publish];
