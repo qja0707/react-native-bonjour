@@ -31,14 +31,14 @@ RCT_EXPORT_METHOD(stopBonjourDiscovery) {
 }
 
 // (필요하다면) serviceRegistrar 메서드
-RCT_EXPORT_METHOD(serviceRegistrar) {
-  NSLog(@"[Bonjour] serviceRegistrar called");
+RCT_EXPORT_METHOD(serviceRegistrar:(NSString *)serviceName) {
+  NSLog(@"[Bonjour] serviceRegistrar called with service name: %@", serviceName);
   
   if(self.netServiceObj == nil){
     self.netServiceObj = [[BonjourServiceDiscovery alloc] init];
   }
   
-  [self.netServiceObj registerService];
+  [self.netServiceObj registerService:serviceName];
 }
 
 // TurboModule 관련 (자동 생성된 부분)

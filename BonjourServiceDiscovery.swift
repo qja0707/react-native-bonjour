@@ -32,9 +32,8 @@ import Foundation
     serviceBrowser.stop()
   }
   
-  @objc func registerService() {
+  @objc func registerService(serviceName: String) {
     let serviceType = "_http._tcp." // 서비스 타입 (예: "_http._tcp." 등)
-    let serviceName = "MySwiftService" // 서비스 이름
     let port: Int32 = 8080 // 사용할 포트 번호
     
     // NetService 인스턴스 생성 및 등록

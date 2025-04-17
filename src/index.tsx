@@ -4,8 +4,8 @@ export function multiply(a: number, b: number): number {
   return Bonjour.multiply(a, b);
 }
 
-export function serviceRegistrar() {
-  return Bonjour.serviceRegistrar();
+export function serviceRegistrar(serviceName: string) {
+  return Bonjour.serviceRegistrar(serviceName);
 }
 
 export function serviceDiscovery() {
