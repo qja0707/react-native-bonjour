@@ -6,7 +6,7 @@ export interface Spec extends TurboModule {
 
   serviceDiscovery(): void;
 
-  serviceRegistrar(): void;
+  serviceRegistrar(serviceName: string): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('Bonjour');

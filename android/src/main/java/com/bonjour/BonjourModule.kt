@@ -28,11 +28,11 @@ class BonjourModule(reactContext: ReactApplicationContext) :
     serviceDiscovery.startServiceDiscovery()
   }
 
-  override fun serviceRegistrar(){
-    Log.i(TAG,"start")
+  override fun serviceRegistrar(serviceName: String){
+    Log.i(TAG,"start with service name: $serviceName")
     val serviceRegistrar = BonjourServiceRegistrar(context)
 
-    serviceRegistrar.registerService(port = 8080, serviceName = "MyBonjourService")
+    serviceRegistrar.registerService(port = 8080, serviceName = serviceName)
   }
 
   companion object {
