@@ -1,9 +1,19 @@
 #import "Bonjour.h"
-#import "react_native_bonjour-Swift.h" // Swift 클래스 실제 구현을 가져옴
 
 @implementation Bonjour
 
 RCT_EXPORT_MODULE()
+
+// 초기화 메서드
+- (instancetype)init {
+  self = [super init];
+  if (self) {
+    _serviceBrowser = [[NSNetServiceBrowser alloc] init];
+    _serviceBrowser.delegate = self;
+    _services = [NSMutableArray array];
+  }
+  return self;
+}
 
 // 예시 메서드
 - (NSNumber *)multiply:(double)a b:(double)b {
@@ -14,31 +24,69 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(serviceDiscovery) {
   NSLog(@"[Bonjour] serviceDiscovery called");
   
-  // self.discovery(프로퍼티)에 할당하여 메서드가 끝나도 해제되지 않도록 함
-  if(self.netServiceObj == nil){
-    self.netServiceObj = [[BonjourServiceDiscovery alloc] init];
-  }
-  
-  [self.netServiceObj startServiceDiscoveryWithServiceType:@"_http._tcp." domain:@"local."];
+  // 백그라운드 큐에서 실행
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+    [self.serviceBrowser searchForServicesOfType:@"_http._tcp." inDomain:@"local."];
+    // RunLoop 실행
+    [[NSRunLoop currentRunLoop] run];
+  });
 }
 
 // Bonjour 검색 정지
 RCT_EXPORT_METHOD(stopBonjourDiscovery) {
   NSLog(@"[Bonjour] stopBonjourDiscovery called");
   
-  [self.netServiceObj stopServiceDiscovery];
-  self.netServiceObj = nil; // 필요에 따라 여기서 해제
+  [self.serviceBrowser stop];
 }
 
-// (필요하다면) serviceRegistrar 메서드
+// 서비스 등록 메서드
 RCT_EXPORT_METHOD(serviceRegistrar) {
   NSLog(@"[Bonjour] serviceRegistrar called");
   
-  if(self.netServiceObj == nil){
-    self.netServiceObj = [[BonjourServiceDiscovery alloc] init];
-  }
+  NSString *serviceType = @"_http._tcp."; // 서비스 타입
+  NSString *serviceName = @"MyService"; // 서비스 이름
+  int port = 8080; // 사용할 포트 번호
   
-  [self.netServiceObj registerService];
+  // NetService 인스턴스 생성 및 등록
+  self.netService = [[NSNetService alloc] initWithDomain:@"local." 
+                                                    type:serviceType 
+                                                    name:serviceName 
+                                                    port:port];
+  self.netService.delegate = self;
+  [self.netService publish];
+  
+  NSLog(@"서비스 등록됨: %@ (%@) on port %d", serviceName, serviceType, port);
+}
+
+// MARK: - NSNetServiceBrowserDelegate
+
+- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didFindService:(NSNetService *)service moreComing:(BOOL)moreComing {
+  NSLog(@"Service found: %@", service.name);
+  [self.services addObject:service];
+  service.delegate = self;
+}
+
+- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didRemoveService:(NSNetService *)service moreComing:(BOOL)moreComing {
+  NSLog(@"Service removed: %@", service.name);
+  [self.services removeObject:service];
+}
+
+- (void)netServiceBrowserDidStopSearch:(NSNetServiceBrowser *)browser {
+  NSLog(@"Service browsing stopped");
+}
+
+- (void)netServiceBrowser:(NSNetServiceBrowser *)browser didNotSearch:(NSDictionary<NSString *,NSNumber *> *)errorDict {
+  NSLog(@"Failed to search for services: %@", errorDict);
+}
+
+// MARK: - NSNetServiceDelegate
+
+- (void)netServiceDidPublish:(NSNetService *)sender {
+  NSLog(@"서비스가 성공적으로 등록되었습니다: %@", sender.name);
+}
+
+- (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary<NSString *, NSNumber *> *)errorDict {
+  NSLog(@"서비스 등록 실패: %@", errorDict);
 }
 
 // TurboModule 관련 (자동 생성된 부분)
