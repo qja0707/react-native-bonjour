@@ -63,6 +63,18 @@ RCT_EXPORT_METHOD(serviceRegistrar:(NSString *)serviceName) {
   NSLog(@"Service found: %@", service.name);
   [self.services addObject:service];
   service.delegate = self;
+  
+  // NSNetService 객체에서 NSDictionary로 변환
+  NSDictionary *serviceDict = @{
+    @"serviceName": service.name ?: @"",
+    @"serviceType": service.type ?: @"",
+    @"serviceDomain": service.domain ?: @"",
+    // 호스트 및 포트는 아직 resolving이 필요함
+    @"servicePort": @(0)  // 기본값, resolving 후 업데이트 필요
+  };
+  
+  // 이벤트 발생
+  [self emitOnDeviceDiscoveryServiceFound:serviceDict];
 }
 
 - (void)netServiceBrowser:(NSNetServiceBrowser *)browser didRemoveService:(NSNetService *)service moreComing:(BOOL)moreComing {
