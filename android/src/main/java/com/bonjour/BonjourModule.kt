@@ -2,6 +2,7 @@ package com.bonjour
 
 import android.content.Context
 import android.util.Log
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
 
@@ -23,9 +24,22 @@ class BonjourModule(reactContext: ReactApplicationContext) :
   }
 
   override fun serviceDiscovery(){
-    val serviceDiscovery = BonjourServiceDiscovery(context)
+    val serviceDiscovery = BonjourServiceDiscovery(context, onServiceDiscovered = { serviceInfo ->
+      val params = Arguments.createMap().apply {
+        putString("serviceName", serviceInfo.serviceName)
+        putString("serviceType", serviceInfo.serviceType)
+        putString("host", serviceInfo.host?.hostAddress)
+        putInt("port", serviceInfo.port)
+      }
+
+      emitOnDeviceDiscoveryServiceFound(params)
+    })
 
     serviceDiscovery.startServiceDiscovery()
+  }
+
+  override fun stopBonjourDiscovery() {
+    TODO("Not yet implemented")
   }
 
   override fun serviceRegistrar(serviceName: String){

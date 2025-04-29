@@ -11,3 +11,9 @@ export function serviceRegistrar(serviceName: string) {
 export function serviceDiscovery() {
   return Bonjour.serviceDiscovery();
 }
+
+export const onDeviceDiscoveryServiceFound =
+  Bonjour.onDeviceDiscoveryServiceFound;
+
+export const onDeviceDiscoveryServiceLost =
+  Bonjour.onDeviceDiscoveryServiceLost;

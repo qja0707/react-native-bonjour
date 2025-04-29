@@ -6,7 +6,7 @@ import android.net.nsd.NsdServiceInfo
 import android.os.Build
 import android.util.Log
 
-class BonjourServiceDiscovery(private val context: Context) {
+class BonjourServiceDiscovery(private val context: Context, private val onServiceDiscovered: ((NsdServiceInfo)->Unit)? = null) {
 
   private val nsdManager = context.getSystemService(Context.NSD_SERVICE) as NsdManager
   private var discoveryListener: NsdManager.DiscoveryListener? = null
@@ -33,6 +33,13 @@ class BonjourServiceDiscovery(private val context: Context) {
 
       override fun onServiceFound(serviceInfo: NsdServiceInfo?) {
         Log.i("Bonjour", "Service found: ${serviceInfo}")
+
+        onServiceDiscovered?.let {
+          if (serviceInfo != null) {
+            it(serviceInfo)
+          }
+        }
+
         resolveService(serviceInfo)
       }
 

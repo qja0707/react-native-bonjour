@@ -4,6 +4,7 @@ import {
   multiply,
   serviceRegistrar,
   serviceDiscovery,
+  onDeviceDiscoveryServiceFound,
 } from 'react-native-bonjour';
 import { useDeviceName } from 'react-native-device-info';
 
@@ -28,6 +29,16 @@ export default function App() {
     setTimeout(() => {
       serviceDiscovery();
     }, 1000);
+  }, []);
+
+  useEffect(() => {
+    const listener = onDeviceDiscoveryServiceFound((serviceInfo) => {
+      console.log('RN: onDeviceDiscoveryServiceFound', serviceInfo);
+    });
+
+    return () => {
+      listener.remove();
+    };
   }, []);
 
   return (
