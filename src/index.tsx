@@ -1,7 +1,7 @@
 import Bonjour from './NativeBonjour';
 
-export function multiply(a: number, b: number): number {
-  return Bonjour.multiply(a, b);
+export function serviceResolve(serviceName: string) {
+  return Bonjour.serviceResolve(serviceName);
 }
 
 export function serviceRegistrar(serviceName: string) {

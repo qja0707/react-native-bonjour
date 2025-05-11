@@ -1,4 +1,5 @@
 #import "Bonjour.h"
+#include <arpa/inet.h>  // inet_ntop 함수 사용을 위해
 
 @implementation Bonjour
 
@@ -15,9 +16,28 @@ RCT_EXPORT_MODULE()
   return self;
 }
 
-// 예시 메서드
-- (NSNumber *)multiply:(double)a b:(double)b {
-  return @(a * b);
+- (void)serviceResolve:(NSString *)serviceName {
+  NSLog(@"[Bonjour] serviceResolve called with name: %@", serviceName);
+  
+  // 검색된 서비스에서 resolve 시작
+  NSNetService *targetService = nil;
+  
+  // 발견된 서비스 목록에서 이름이 일치하는 서비스 찾기
+  for (NSNetService *service in self.services) {
+    if ([service.name isEqualToString:serviceName]) {
+      targetService = service;
+      break;
+    }
+  }
+  
+  if (targetService) {
+    NSLog(@"Resolving service with name: %@", serviceName);
+    targetService.delegate = self;
+    [targetService resolveWithTimeout:5.0];
+  } else {
+    NSLog(@"No service found with name: %@", serviceName);
+    // 오류 처리 또는 이벤트 발생
+  }
 }
 
 // Bonjour 검색 시작
@@ -37,6 +57,8 @@ RCT_EXPORT_METHOD(stopBonjourDiscovery) {
   NSLog(@"[Bonjour] stopBonjourDiscovery called");
   
   [self.serviceBrowser stop];
+
+  [self.services removeAllObjects];
 }
 
 // 서비스 등록 메서드
@@ -98,6 +120,48 @@ RCT_EXPORT_METHOD(serviceRegistrar:(NSString *)serviceName) {
 
 - (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary<NSString *, NSNumber *> *)errorDict {
   NSLog(@"서비스 등록 실패: %@", errorDict);
+}
+
+- (void)netServiceDidResolveAddress:(NSNetService *)service {
+  NSLog(@"Service resolved: %@, Host: %@, Port: %d", service.name, service.hostName, service.port);
+  
+  // IP 주소 추출하기
+  NSString *ipAddress = nil;
+  
+  // addresses 배열에서 IPv4 주소 찾기
+  for (NSData *addressData in service.addresses) {
+    struct sockaddr *socketAddress = (struct sockaddr *)[addressData bytes];
+    
+    // IPv4 주소만 처리
+    if (socketAddress->sa_family == AF_INET) {  // IPv4
+      char ipString[INET_ADDRSTRLEN];
+      struct sockaddr_in *ipv4 = (struct sockaddr_in *)socketAddress;
+      inet_ntop(AF_INET, &(ipv4->sin_addr), ipString, INET_ADDRSTRLEN);
+      ipAddress = [NSString stringWithUTF8String:ipString];
+      break;  // 첫 번째 IPv4 주소를 찾으면 종료
+    }
+  }
+  
+  NSLog(@"실제 IP 주소: %@", ipAddress ? ipAddress : @"찾을 수 없음");
+  
+  // 이벤트로 전송할 데이터 준비
+  NSDictionary *resolvedDict = @{
+    @"serviceName": service.name ?: @"",
+    @"serviceType": service.type ?: @"",
+    @"serviceDomain": service.domain ?: @"",
+    @"host": ipAddress ?: service.hostName ?: @"",  // IP 주소 우선, 없으면 호스트명
+    @"port": @(service.port)
+  };
+  
+  // 이벤트 발생
+  [self emitOnDeviceDiscoveryServiceFound:resolvedDict];
+}
+
+// 해석 실패 처리
+- (void)netService:(NSNetService *)service didNotResolve:(NSDictionary<NSString *, NSNumber *> *)errorDict {
+  NSLog(@"Failed to resolve service: %@, Error: %@", service.name, errorDict);
+  
+  // 실패 이벤트 처리 (필요시)
 }
 
 // TurboModule 관련 (자동 생성된 부분)
