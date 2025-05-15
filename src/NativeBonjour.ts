@@ -22,7 +22,7 @@ export interface Spec extends TurboModule {
   stopBonjourDiscovery(): void;
 
   // Bonjour 서비스 등록
-  serviceRegistrar(serviceName: string): void;
+  serviceRegister(serviceName: string): void;
 
   readonly onDeviceDiscoveryServiceFound: EventEmitter<DeviceDiscoveryService>;
 

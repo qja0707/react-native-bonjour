@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {
-  serviceRegistrar,
+  serviceRegister,
   serviceDiscovery,
   onDeviceDiscoveryServiceFound,
   onDeviceDiscoveryServiceLost,
@@ -42,7 +42,7 @@ export default function App() {
     // 디바이스 이름이 로드되면 서비스 등록
     if (!loading && deviceName) {
       console.log('Device name:', deviceName);
-      serviceRegistrar(deviceName);
+      serviceRegister(deviceName);
     }
 
     console.log('useEffect end');

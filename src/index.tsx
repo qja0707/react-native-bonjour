@@ -4,8 +4,8 @@ export function serviceResolve(serviceName: string) {
   return Bonjour.serviceResolve(serviceName);
 }
 
-export function serviceRegistrar(serviceName: string) {
-  return Bonjour.serviceRegistrar(serviceName);
+export function serviceRegister(serviceName: string) {
+  return Bonjour.serviceRegister(serviceName);
 }
 
 export function serviceDiscovery() {

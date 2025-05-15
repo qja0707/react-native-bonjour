@@ -62,8 +62,8 @@ RCT_EXPORT_METHOD(stopBonjourDiscovery) {
 }
 
 // 서비스 등록 메서드
-RCT_EXPORT_METHOD(serviceRegistrar:(NSString *)serviceName) {
-  NSLog(@"[Bonjour] serviceRegistrar called with name: %@", serviceName);
+RCT_EXPORT_METHOD(serviceRegister:(NSString *)serviceName) {
+  NSLog(@"[Bonjour] serviceRegister called with name: %@", serviceName);
   
   NSString *serviceType = @"_http._tcp."; // 서비스 타입
   int port = 8080; // 사용할 포트 번호

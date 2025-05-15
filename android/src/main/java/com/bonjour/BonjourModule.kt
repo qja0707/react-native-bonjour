@@ -52,7 +52,7 @@ class BonjourModule(reactContext: ReactApplicationContext) :
     serviceDiscovery.stopServiceDiscovery()
   }
 
-  override fun serviceRegistrar(serviceName: String){
+  override fun serviceRegister(serviceName: String){
     Log.i(TAG,"start with service name: $serviceName")
     val serviceRegistrar = BonjourServiceRegistrar(context)
 
