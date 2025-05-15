@@ -1,5 +1,6 @@
 #import "Bonjour.h"
 #include <arpa/inet.h>  // inet_ntop 함수 사용을 위해
+#import <UIKit/UIKit.h>  // UIApplication 노티피케이션 사용을 위해
 
 @implementation Bonjour
 
@@ -12,8 +13,63 @@ RCT_EXPORT_MODULE()
     _serviceBrowser = [[NSNetServiceBrowser alloc] init];
     _serviceBrowser.delegate = self;
     _services = [NSMutableArray array];
+    _serviceName = @"";
+    
+    // 앱 라이프사이클 노티피케이션 등록
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleAppTermination)
+                                                 name:UIApplicationWillTerminateNotification
+                                               object:nil];
+    
+    // 백그라운드 진입 시 노티피케이션 등록 (필요시 활성화)
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleAppBackgrounded)
+                                                 name:UIApplicationDidEnterBackgroundNotification
+                                               object:nil];
+    
+    // 포그라운드 복귀 시 노티피케이션 등록 (필요시 활성화)
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleAppForegrounded)
+                                                 name:UIApplicationWillEnterForegroundNotification
+                                               object:nil];
   }
   return self;
+}
+
+// 앱 종료 시 호출
+- (void)handleAppTermination {
+  NSLog(@"[Bonjour] App is terminating, unregistering service");
+  [self serviceUnregister];
+  [self stopBonjourDiscovery];
+}
+
+// 앱이 백그라운드로 갈 때 호출 (필요에 따라 구현)
+- (void)handleAppBackgrounded {
+  NSLog(@"[Bonjour] App went to background");
+  // 백그라운드에서 서비스를 유지하려면 주석 처리
+  [self serviceUnregister];
+  [self stopBonjourDiscovery];
+}
+
+// 앱이 포그라운드로 돌아올 때 호출 (필요에 따라 구현)
+- (void)handleAppForegrounded {
+  NSLog(@"[Bonjour] App came to foreground");
+  
+  [self serviceDiscovery];
+
+  if (self.serviceName.length > 0) {
+    [self serviceRegister:self.serviceName];
+  }
+}
+
+// 모듈 정리 메서드
+- (void)dealloc {
+  NSLog(@"[Bonjour] dealloc called");
+  // 노티피케이션 옵저버 제거
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  // 서비스 정리
+  [self serviceUnregister];
+  [self stopBonjourDiscovery];
 }
 
 - (void)serviceResolve:(NSString *)serviceName {
@@ -64,6 +120,8 @@ RCT_EXPORT_METHOD(stopBonjourDiscovery) {
 // 서비스 등록 메서드
 RCT_EXPORT_METHOD(serviceRegister:(NSString *)serviceName) {
   NSLog(@"[Bonjour] serviceRegister called with name: %@", serviceName);
+
+  _serviceName = serviceName;
   
   NSString *serviceType = @"_http._tcp."; // 서비스 타입
   int port = 8080; // 사용할 포트 번호
@@ -78,6 +136,15 @@ RCT_EXPORT_METHOD(serviceRegister:(NSString *)serviceName) {
   
   NSLog(@"서비스 등록됨: %@ (%@) on port %d", serviceName, serviceType, port);
 }
+
+// 서비스 해제 메서드
+RCT_EXPORT_METHOD(serviceUnregister) {
+  NSLog(@"[Bonjour] serviceUnregister called");
+  
+  [self.netService stop];
+  self.netService = nil;
+}
+
 
 // MARK: - NSNetServiceBrowserDelegate
 
@@ -102,6 +169,16 @@ RCT_EXPORT_METHOD(serviceRegister:(NSString *)serviceName) {
 - (void)netServiceBrowser:(NSNetServiceBrowser *)browser didRemoveService:(NSNetService *)service moreComing:(BOOL)moreComing {
   NSLog(@"Service removed: %@", service.name);
   [self.services removeObject:service];
+
+  NSDictionary *serviceDict = @{
+    @"serviceName": service.name ?: @"",
+    @"serviceType": service.type ?: @"",
+    @"serviceDomain": service.domain ?: @"",
+    @"servicePort": @(service.port)
+  };
+  
+  // 이벤트 발생
+  [self emitOnDeviceDiscoveryServiceLost:serviceDict];
 }
 
 - (void)netServiceBrowserDidStopSearch:(NSNetServiceBrowser *)browser {

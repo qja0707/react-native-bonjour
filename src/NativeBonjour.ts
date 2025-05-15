@@ -24,6 +24,9 @@ export interface Spec extends TurboModule {
   // Bonjour 서비스 등록
   serviceRegister(serviceName: string): void;
 
+  // Bonjour 서비스 해제
+  serviceUnregister(): void;
+
   readonly onDeviceDiscoveryServiceFound: EventEmitter<DeviceDiscoveryService>;
 
   readonly onDeviceDiscoveryServiceLost: EventEmitter<DeviceDiscoveryService>;

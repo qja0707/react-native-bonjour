@@ -7,5 +7,6 @@
 @property (nonatomic, strong) NSNetServiceBrowser *serviceBrowser;
 @property (nonatomic, strong) NSMutableArray *services;
 @property (nonatomic, strong) NSNetService *netService;
+@property (nonatomic, strong) NSString *serviceName;
 
 @end

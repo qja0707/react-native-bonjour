@@ -9,6 +9,7 @@ import android.util.Log
 class BonjourServiceDiscovery(
   private val context: Context,
   private val onServiceDiscovered: ((NsdServiceInfo)->Unit)? = null,
+  private val onServiceLost: ((NsdServiceInfo)->Unit)? = null,
   private val onServiceResolved: ((NsdServiceInfo)->Unit)? = null
 ) {
 
@@ -47,6 +48,12 @@ class BonjourServiceDiscovery(
 
       override fun onServiceLost(serviceInfo: NsdServiceInfo?) {
         Log.w("Bonjour", "Service lost: ${serviceInfo?.serviceName}")
+
+        onServiceLost?.let {
+          if (serviceInfo != null) {
+            it(serviceInfo)
+          }
+        }
       }
     }
 

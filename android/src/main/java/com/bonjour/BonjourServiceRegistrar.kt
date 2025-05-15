@@ -43,6 +43,8 @@ class BonjourServiceRegistrar(private val context: Context) {
 
   fun unregisterService() {
     registrationListener?.let {
+      Log.e("Bonjour", "Service unregistration")
+
       nsdManager.unregisterService(it)
     }
   }

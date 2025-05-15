@@ -8,6 +8,10 @@ export function serviceRegister(serviceName: string) {
   return Bonjour.serviceRegister(serviceName);
 }
 
+export function serviceUnregister() {
+  return Bonjour.serviceUnregister();
+}
+
 export function serviceDiscovery() {
   return Bonjour.serviceDiscovery();
 }
