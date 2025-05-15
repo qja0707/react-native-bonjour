@@ -12,16 +12,9 @@ class BonjourModule(reactContext: ReactApplicationContext) :
 
   private var context: Context = reactContext.getApplicationContext()
 
-  override fun getName(): String {
-    return NAME
-  }
-
-  override fun serviceResolve(serviceName: String) {
-    // TODO: Implement serviceResolve
-  }
-
-  override fun serviceDiscovery(){
-    val serviceDiscovery = BonjourServiceDiscovery(context, onServiceDiscovered = { serviceInfo ->
+  private val serviceDiscovery = BonjourServiceDiscovery(
+    context,
+    onServiceDiscovered = { serviceInfo ->
       val params = Arguments.createMap().apply {
         putString("serviceName", serviceInfo.serviceName)
         putString("serviceType", serviceInfo.serviceType)
@@ -30,13 +23,33 @@ class BonjourModule(reactContext: ReactApplicationContext) :
       }
 
       emitOnDeviceDiscoveryServiceFound(params)
-    })
+    },
+    onServiceResolved = { serviceInfo ->
+      val params = Arguments.createMap().apply {
+        putString("serviceName", serviceInfo.serviceName)
+        putString("serviceType", serviceInfo.serviceType)
+        putString("host", serviceInfo.host?.hostAddress)
+        putInt("port", serviceInfo.port)
+      }
 
+      emitOnDeviceDiscoveryServiceFound(params)
+    }
+  )
+
+  override fun getName(): String {
+    return NAME
+  }
+
+  override fun serviceResolve(serviceName: String) {
+    serviceDiscovery.resolveServiceByName(serviceName)
+  }
+
+  override fun serviceDiscovery(){
     serviceDiscovery.startServiceDiscovery()
   }
 
   override fun stopBonjourDiscovery() {
-    TODO("Not yet implemented")
+    serviceDiscovery.stopServiceDiscovery()
   }
 
   override fun serviceRegistrar(serviceName: String){
@@ -48,5 +61,6 @@ class BonjourModule(reactContext: ReactApplicationContext) :
 
   companion object {
     const val NAME = "Bonjour"
+    const val TAG = "BonjourModule"
   }
 }
