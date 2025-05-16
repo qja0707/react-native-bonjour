@@ -2,6 +2,7 @@
   "name": "react-native-bonjour",
   "version": "0.1.0",
   "description": "bonjour network for react native",
+  "private": true,
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",

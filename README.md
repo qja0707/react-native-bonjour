@@ -7,13 +7,26 @@ A React Native library that provides Bonjour/Zeroconf/mDNS networking capabiliti
 - Discover services on your local network
 - Register your app as a service on the network
 - Resolve service details (host, IP, port)
+- Automatically manage service registration based on app lifecycle
 - Get notifications when services are found or lost
 - Works on both iOS and Android
 
 ## Installation
 
+Since this package is not yet published to npm, you can install it directly from the GitHub repository:
+
 ```sh
-npm install react-native-bonjour
+# Using npm
+npm install git+https://github.com/qja0707/react-native-bonjour.git
+
+# Or using yarn
+yarn add git+https://github.com/qja0707/react-native-bonjour.git
+```
+
+After installation, link the native modules:
+
+```sh
+npx pod-install
 ```
 
 ## iOS Setup
