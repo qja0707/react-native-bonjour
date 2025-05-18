@@ -1,0 +1,1 @@
+{"version":3,"names":["_reactNative","require","_default","exports","default","TurboModuleRegistry","getEnforcing"],"sourceRoot":"../../src","sources":["NativeBonjour.ts"],"mappings":";;;;;;AACA,IAAAA,YAAA,GAAAC,OAAA;AAUA;AACA;AACA;AAFA,IAAAC,QAAA,GAAAC,OAAA,CAAAC,OAAA,GAuBeC,gCAAmB,CAACC,YAAY,CAAO,SAAS,CAAC","ignoreList":[]}
