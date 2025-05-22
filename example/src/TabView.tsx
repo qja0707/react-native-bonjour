@@ -15,7 +15,12 @@ const tabItems = [
     title: 'Clipboard',
   },
 ];
-const TabView = () => {
+
+interface Props {
+  onPress: (thingToBeTransmitted: string) => void;
+}
+
+const TabView = ({ onPress }: Props) => {
   const [clipboardItem, setClipboardItem] = useState<string>('');
 
   useEffect(() => {
@@ -30,6 +35,7 @@ const TabView = () => {
       (nextAppState: AppStateStatus) => {
         if (nextAppState === 'active') {
           Clipboard.getString().then((text) => {
+            console.log('active', text);
             setClipboardItem(text);
           });
         }
@@ -45,6 +51,7 @@ const TabView = () => {
     // 클립보드 내용 변경 감지 리스너
     Clipboard.addListener(() => {
       Clipboard.getString().then((text) => {
+        console.log('clipboard changed', text);
         setClipboardItem(text);
       });
     });
@@ -66,7 +73,12 @@ const TabView = () => {
 
       <View style={styles.contentContainer}>
         <ScrollView>
-          <TouchableOpacity style={styles.clipboardItem}>
+          <TouchableOpacity
+            style={styles.clipboardItem}
+            onPress={() => {
+              onPress(clipboardItem);
+            }}
+          >
             <Text>{clipboardItem}</Text>
           </TouchableOpacity>
         </ScrollView>

@@ -4051,7 +4051,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"buffer@npm:^5.5.0":
+"buffer@npm:^5.4.3, buffer@npm:^5.5.0":
   version: 5.7.1
   resolution: "buffer@npm:5.7.1"
   dependencies:
@@ -5903,6 +5903,13 @@ __metadata:
   version: 5.0.1
   resolution: "event-target-shim@npm:5.0.1"
   checksum: 1ffe3bb22a6d51bdeb6bf6f7cf97d2ff4a74b017ad12284cc9e6a279e727dc30a5de6bb613e5596ff4dc3e517841339ad09a7eec44266eccb1aa201a30448166
+  languageName: node
+  linkType: hard
+
+"eventemitter3@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "eventemitter3@npm:4.0.7"
+  checksum: 1875311c42fcfe9c707b2712c32664a245629b42bb0a5a84439762dd0fd637fc54d078155ea83c2af9e0323c9ac13687e03cfba79b03af9f40c89b4960099374
   languageName: node
   linkType: hard
 
@@ -10630,6 +10637,7 @@ __metadata:
     react-native: 0.76.6
     react-native-builder-bob: ^0.35.2
     react-native-device-info: ^14.0.4
+    react-native-tcp-socket: ^6.3.0
   languageName: unknown
   linkType: soft
 
@@ -10701,6 +10709,18 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: aa839dbe7df1246a4b5f9bcfeb3d4cc4be585f13a0d3ff6a03f57a0c2cfe7590291ac292dda4c51fd8765f94c870857676463e8e2f1660b057f3ae2b4335db29
+  languageName: node
+  linkType: hard
+
+"react-native-tcp-socket@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "react-native-tcp-socket@npm:6.3.0"
+  dependencies:
+    buffer: ^5.4.3
+    eventemitter3: ^4.0.7
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: 0cb8c8910bfcff7074bf3493723998f9f990a434f57e02d6fbaf7ee75965f00cdfdcf49e7b1ce3018ea1feb884506d613b62fa09be9f7716cec424bece164cac
   languageName: node
   linkType: hard
 
