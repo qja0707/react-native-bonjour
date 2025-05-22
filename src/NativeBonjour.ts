@@ -3,6 +3,7 @@ import { TurboModuleRegistry } from 'react-native';
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 
 export interface DeviceDiscoveryService {
+  host: string | null;
   serviceName: string;
   serviceType: string;
   serviceDomain: string | null;

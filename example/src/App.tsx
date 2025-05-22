@@ -1,28 +1,37 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
   Text,
   View,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
 } from 'react-native';
 import {
-  serviceRegister,
-  serviceDiscovery,
   onDeviceDiscoveryServiceFound,
   onDeviceDiscoveryServiceLost,
-  serviceResolve,
+  serviceDiscovery,
+  serviceRegister,
+  serviceUnregister,
 } from 'react-native-bonjour';
 import { useDeviceName } from 'react-native-device-info';
 import type { DeviceDiscoveryService } from '../../src/NativeBonjour';
+import TabView from './TabView';
+import Device from '../asset/mobile.png';
 
 export default function App() {
+  const isServiceRegistered = useRef(false);
+
   const { loading, result: deviceName } = useDeviceName();
   const [services, setServices] = useState<DeviceDiscoveryService[]>([]);
 
   const addService = useCallback((service: DeviceDiscoveryService) => {
     setServices((prev) => {
-      if (prev.find((s) => s.serviceName === service.serviceName)) {
+      const enrolledServiceIndex = prev.findIndex(
+        (s) => s.serviceName === service.serviceName
+      );
+      if (enrolledServiceIndex !== -1) {
+        prev[enrolledServiceIndex] = service;
         return prev;
       }
 
@@ -39,13 +48,22 @@ export default function App() {
   useEffect(() => {
     console.log('useEffect');
 
+    if (isServiceRegistered.current) {
+      return;
+    }
+
     // 디바이스 이름이 로드되면 서비스 등록
     if (!loading && deviceName) {
-      console.log('Device name:', deviceName);
       serviceRegister(deviceName);
+
+      isServiceRegistered.current = true;
     }
 
     console.log('useEffect end');
+
+    return () => {
+      serviceUnregister();
+    };
   }, [loading, deviceName]);
 
   useEffect(() => {
@@ -74,52 +92,64 @@ export default function App() {
   }, [addService, removeService]);
 
   return (
-    <View style={styles.container}>
-      <Text>Device Name: {loading ? 'Loading...' : deviceName}</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.deviceContainer}>
+        <View style={styles.myDeviceContainer}>
+          <Image
+            source={Device}
+            style={styles.myDeviceImage}
+            resizeMode="contain"
+          />
 
-      <Text>Service Discovery</Text>
+          <Text>{deviceName}</Text>
+        </View>
 
-      <View
-        style={{
-          flex: 1,
-          borderWidth: 1,
-          borderColor: 'black',
-          width: '100%',
-          height: 100,
-        }}
-      >
-        <FlatList
-          data={services}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => {
-                console.log(item);
-                serviceResolve(item.serviceName);
-              }}
-            >
-              <Text
-                style={{
-                  color: 'black',
-                  padding: 10,
-                  borderBottomWidth: 1,
-                  borderColor: 'lightgray',
-                }}
-              >
-                {item.serviceName}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
+        <ScrollView style={styles.networksContainer}>
+          {services.map((device) => (
+            <View key={device.serviceName} style={styles.otherDeviceContainer}>
+              <Text>{device.serviceName}</Text>
+            </View>
+          ))}
+        </ScrollView>
       </View>
-    </View>
+
+      <View style={styles.filesContainer}>
+        <TabView />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#f5f5f5', // 연한 회색으로 변경
+  },
+  deviceContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    padding: 20,
+  },
+  myDeviceContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  networksContainer: {
+    flex: 2,
+  },
+  filesContainer: {
+    flex: 2,
+    backgroundColor: 'white',
+  },
+  otherDeviceContainer: {
+    width: '100%',
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  myDeviceImage: {
+    height: '30%',
+    aspectRatio: 1,
   },
 });
