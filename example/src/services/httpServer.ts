@@ -1,4 +1,5 @@
 import TcpSocket from 'react-native-tcp-socket';
+import processData from './processData';
 
 type HttpServerConfig = {
   port: number;
@@ -35,6 +36,8 @@ class HttpServer {
             const receivedData = data.toString();
             console.log('수신된 데이터 크기:', receivedData.length);
             console.log('수신된 데이터:', receivedData);
+
+            processData(receivedData);
 
             // HTTP 요청 파싱 시도
             try {
@@ -121,10 +124,10 @@ class HttpServer {
   }
 
   // 네트워크 접근성 테스트 메서드 추가
-  public testConnection(): void {
+  public testConnection(): boolean {
     if (!this.isRunning) {
       console.log('서버가 실행 중이 아니므로 연결 테스트를 할 수 없습니다.');
-      return;
+      return false;
     }
 
     try {
@@ -134,7 +137,7 @@ class HttpServer {
       const address = this.server?.address();
       if (!address || typeof address !== 'object') {
         console.log('유효한 서버 주소 정보가 없습니다.');
-        return;
+        return false;
       }
 
       const testSocket = TcpSocket.createConnection(
@@ -167,7 +170,10 @@ class HttpServer {
       });
     } catch (error) {
       console.error('연결 테스트 시도 중 에러:', error);
+      return false;
     }
+
+    return true;
   }
 }
 

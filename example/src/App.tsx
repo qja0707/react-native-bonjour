@@ -31,6 +31,8 @@ export default function App() {
   const [selectedService, setSelectedService] =
     useState<DeviceDiscoveryService | null>(null);
 
+  const [isServerRunning, setIsServerRunning] = useState(false);
+
   const addService = useCallback((service: DeviceDiscoveryService) => {
     setServices((prev) => {
       const enrolledServiceIndex = prev.findIndex(
@@ -53,6 +55,16 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    httpServer.start().then(() => {
+      setIsServerRunning(httpServer.testConnection());
+    });
+
+    return () => {
+      httpServer.stop();
+    };
+  }, []);
+
+  useEffect(() => {
     console.log('useEffect');
 
     if (isServiceRegistered.current) {
@@ -61,8 +73,6 @@ export default function App() {
 
     // 디바이스 이름이 로드되면 서비스 등록
     if (!loading && deviceName) {
-      httpServer.start();
-
       serviceRegister(deviceName);
 
       isServiceRegistered.current = true;
@@ -107,13 +117,69 @@ export default function App() {
     return () => {
       addServiceListener.remove();
       removeServiceListener.remove();
-
-      httpServer.stop();
     };
   }, [addService, removeService, selectedService?.host]);
 
   const handleConnect = (device: DeviceDiscoveryService) => () => {
     serviceResolve(device.serviceName);
+  };
+
+  const handlePressTransmit = (thingToBeTransmitted: string) => {
+    if (!selectedService || !selectedService.host || !selectedService.port) {
+      console.error('선택된 서비스 없음 또는 유효하지 않은 호스트/포트');
+      return;
+    }
+
+    const { host, port } = selectedService;
+    console.log('RN: host', host);
+    console.log('RN: port', port);
+
+    try {
+      // 소켓 연결 전 유효성 검사 추가
+      if (!host || !port) {
+        console.error('유효하지 않은 호스트 또는 포트:', {
+          host,
+          port,
+        });
+        return;
+      }
+
+      console.log('소켓 연결 시도 중...', { host, port });
+
+      const socket = TcpSocket.createConnection(
+        {
+          host,
+          port,
+        },
+        () => {
+          console.log(`연결 성공: ${host}:${port}`);
+
+          const httpRequest = `${thingToBeTransmitted}`;
+
+          console.log('보내는 데이터:', httpRequest);
+          socket.write(httpRequest);
+        }
+      );
+
+      // 소켓 이벤트 핸들러 추가
+      socket.on('connect', () => {
+        console.log('소켓 연결됨');
+      });
+
+      socket.on('data', (data) => {
+        console.log('서버 응답:', data.toString());
+      });
+
+      socket.on('error', (error) => {
+        console.error('소켓 에러:', error);
+      });
+
+      socket.on('close', () => {
+        console.log('소켓 연결 종료');
+      });
+    } catch (e) {
+      console.error('소켓 생성 예외 발생:', e);
+    }
   };
 
   return (
@@ -126,9 +192,17 @@ export default function App() {
             resizeMode="contain"
           />
 
-          <Text>{deviceName}</Text>
+          <Text
+            style={
+              isServerRunning
+                ? styles.activeContainer
+                : styles.inactiveContainer
+            }
+          >
+            {deviceName}
+          </Text>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.testButton}
             onPress={() => {
               console.log('서버 연결 테스트 요청');
@@ -136,7 +210,7 @@ export default function App() {
             }}
           >
             <Text style={styles.testButtonText}>서버 테스트</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <ScrollView style={styles.networksContainer}>
@@ -156,72 +230,7 @@ export default function App() {
       </View>
 
       <View style={styles.filesContainer}>
-        <TabView
-          onPress={(thingToBeTransmitted) => {
-            console.log('RN: thingToBeTransmitted', thingToBeTransmitted);
-
-            if (
-              selectedService &&
-              selectedService.host &&
-              selectedService.port
-            ) {
-              const { host, port } = selectedService;
-              console.log('RN: host', host);
-              console.log('RN: port', port);
-
-              try {
-                // 소켓 연결 전 유효성 검사 추가
-                if (!host || !port) {
-                  console.error('유효하지 않은 호스트 또는 포트:', {
-                    host,
-                    port,
-                  });
-                  return;
-                }
-
-                console.log('소켓 연결 시도 중...', { host, port });
-
-                const socket = TcpSocket.createConnection(
-                  {
-                    host,
-                    port,
-                  },
-                  () => {
-                    console.log(`연결 성공: ${host}:${port}`);
-
-                    const httpRequest = `${thingToBeTransmitted}`;
-
-                    console.log('보내는 데이터:', httpRequest);
-                    socket.write(httpRequest);
-                  }
-                );
-
-                // 소켓 이벤트 핸들러 추가
-                socket.on('connect', () => {
-                  console.log('소켓 연결됨');
-                });
-
-                socket.on('data', (data) => {
-                  console.log('서버 응답:', data.toString());
-                });
-
-                socket.on('error', (error) => {
-                  console.error('소켓 에러:', error);
-                });
-
-                socket.on('close', () => {
-                  console.log('소켓 연결 종료');
-                });
-              } catch (e) {
-                console.error('소켓 생성 예외 발생:', e);
-              }
-            } else {
-              console.error(
-                '선택된 서비스 없음 또는 유효하지 않은 호스트/포트'
-              );
-            }
-          }}
-        />
+        <TabView onPress={handlePressTransmit} />
       </View>
     </SafeAreaView>
   );
@@ -274,5 +283,11 @@ const styles = StyleSheet.create({
   testButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  activeContainer: {
+    color: 'green',
+  },
+  inactiveContainer: {
+    color: 'red',
   },
 });

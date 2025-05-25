@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   AppState,
+  TextInput,
 } from 'react-native';
 import type { AppStateStatus } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -34,10 +35,14 @@ const TabView = ({ onPress }: Props) => {
       'change',
       (nextAppState: AppStateStatus) => {
         if (nextAppState === 'active') {
-          Clipboard.getString().then((text) => {
-            console.log('active', text);
-            setClipboardItem(text);
-          });
+          Clipboard.getString()
+            .then((text) => {
+              console.log('active', text);
+              setClipboardItem(text);
+            })
+            .catch((e) => {
+              console.error('Clipboard 데이터 가져오기 오류:', e);
+            });
         }
       }
     );
@@ -73,6 +78,17 @@ const TabView = ({ onPress }: Props) => {
 
       <View style={styles.contentContainer}>
         <ScrollView>
+          <Text>Put your text here</Text>
+
+          <TextInput
+            style={[styles.clipboardItem, styles.marginBottom]}
+            value={clipboardItem}
+            onChangeText={setClipboardItem}
+            numberOfLines={1}
+            selectTextOnFocus={true}
+          />
+
+          <Text>Preview (click to send)</Text>
           <TouchableOpacity
             style={styles.clipboardItem}
             onPress={() => {
@@ -106,6 +122,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     borderRadius: 5,
+  },
+  marginBottom: {
+    marginBottom: 20,
   },
 });
 
