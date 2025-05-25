@@ -22,6 +22,8 @@ import TabView from './TabView';
 import Device from '../asset/mobile.png';
 import httpServer from './services/httpServer';
 import TcpSocket from 'react-native-tcp-socket';
+import TutorialModal from './components/TutorialModal';
+
 export default function App() {
   const isServiceRegistered = useRef(false);
 
@@ -32,6 +34,7 @@ export default function App() {
     useState<DeviceDiscoveryService | null>(null);
 
   const [isServerRunning, setIsServerRunning] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const addService = useCallback((service: DeviceDiscoveryService) => {
     setServices((prev) => {
@@ -182,6 +185,17 @@ export default function App() {
     }
   };
 
+  // Check if this is the first time opening the app
+  useEffect(() => {
+    // For now, show tutorial on every app start for demo purposes
+    // In production, you'd want to check AsyncStorage or another persistent storage
+    const timer = setTimeout(() => {
+      setShowTutorial(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.deviceContainer}>
@@ -222,7 +236,7 @@ export default function App() {
             >
               <Text>{device.serviceName}</Text>
               {selectedService?.serviceName === device.serviceName && (
-                <Text style={styles.connectedText}>연결됨</Text>
+                <Text style={styles.connectedText}>connected</Text>
               )}
             </TouchableOpacity>
           ))}
@@ -232,6 +246,12 @@ export default function App() {
       <View style={styles.filesContainer}>
         <TabView onPress={handlePressTransmit} />
       </View>
+
+      {/* Tutorial Modal */}
+      <TutorialModal
+        visible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+      />
     </SafeAreaView>
   );
 }
