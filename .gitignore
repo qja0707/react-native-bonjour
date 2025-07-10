@@ -80,3 +80,6 @@ android/keystores/debug.keystore
 # React Native Codegen
 ios/generated
 android/generated
+
+#build
+example/android/app/*

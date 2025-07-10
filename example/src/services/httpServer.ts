@@ -17,10 +17,42 @@ class HttpServer {
     this.host = config.host || '0.0.0.0';
   }
 
-  public start(): Promise<void> {
+  // 포트 사용 가능 여부 확인 함수
+  private checkPortAvailable(port: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      const testServer = TcpSocket.createServer(() => {});
+      testServer.listen({ port, host: this.host }, () => {
+        testServer.close();
+        resolve(true);
+      });
+      testServer.on('error', (_: any) => {
+        resolve(false);
+      });
+    });
+  }
+
+  public async start(): Promise<void> {
     if (this.isRunning) {
       console.log('HTTP 서버가 이미 실행 중입니다.');
       return Promise.resolve();
+    }
+
+    // 사용 가능한 포트 찾기
+    let tryPort = this.port;
+    let found = false;
+    const maxTries = 100; // 최대 100번 시도
+    for (let i = 0; i < maxTries; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const available = await this.checkPortAvailable(tryPort);
+      if (available) {
+        this.port = tryPort;
+        found = true;
+        break;
+      }
+      tryPort++;
+    }
+    if (!found) {
+      throw new Error('사용 가능한 포트를 찾을 수 없습니다.');
     }
 
     return new Promise((resolve, reject) => {

@@ -1,10 +1,11 @@
 import type { TurboModule } from 'react-native';
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 export interface DeviceDiscoveryService {
+    host: string | null;
     serviceName: string;
     serviceType: string;
     serviceDomain: string | null;
-    servicePort: number | null;
+    port: number | null;
 }
 /**
  * Bonjour 서비스 검색 및 등록을 위한 TurboModule 스펙
