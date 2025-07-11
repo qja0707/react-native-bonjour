@@ -1,4 +1,5 @@
 import Bonjour from './NativeBonjour';
+export type { DeviceDiscoveryService } from './types/bonjour';
 
 export function serviceResolve(serviceName: string) {
   return Bonjour.serviceResolve(serviceName);
