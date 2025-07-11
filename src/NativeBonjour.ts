@@ -7,6 +7,8 @@ export interface DeviceDiscoveryService {
   serviceType: string;
   serviceDomain: string | null;
   servicePort: number | null;
+  host?: string; // iOS resolve 후에만 존재
+  port?: number; // iOS resolve 후에만 존재
 }
 
 /**
